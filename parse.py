@@ -1,4 +1,7 @@
-import requests, json
+import requests
+import json
+import aiohttp
+import asyncio
 import re
 from itertools import islice
 
@@ -12,7 +15,21 @@ def g(i):
     url = f'https://vanderbilt.kuali.co/api/v1/catalog/course/6074bfff280c13001c065999/{pid}'
     return json.loads(requests.get(url).content)
 
-courses = islice(map(g,filter(lambda i: i['subjectCode']['name'] == 'CS', data)),10)
+# courses = islice(map(g,filter(lambda i: i['subjectCode']['name'] == 'CS', data)),10)
+course_urls = islice(filter(lambda i: i['subjectCode']['name'] == 'CS', data),15)
+courses = []
+async def process(l):
+    async with aiohttp.ClientSession() as session:
+        for i in l:
+            pid = i['pid']
+            url = f'https://vanderbilt.kuali.co/api/v1/catalog/course/6074bfff280c13001c065999/{pid}'
+            async with session.get(url) as resp:
+                x = await resp.json()
+                # print(x)
+                courses.append(x)
+
+asyncio.run(process(course_urls))
+print(courses)
 
 COURSE_REGEX = re.compile(r'(CS[0-9]{4})\. ([^.]+)')
 PREREQ_REGEX = re.compile(r'(?:Prerequisite|Prereq): ([^.]+)')

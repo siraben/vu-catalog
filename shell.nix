@@ -1,7 +1,7 @@
 with (import <nixpkgs> {});
 
 let
-  py = python3.withPackages (p: [ p.requests ]);
+  py = python3.withPackages (p: [ p.requests p.aiohttp ]);
 in
 
 mkShell {
